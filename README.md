@@ -33,3 +33,9 @@ Acquiring variables:
 python3.13 main.py
 ```
 
+# Debugging
+## Redirected more than 30 times exception
+Your LI_AT variable has expired
+
+## CSRF error
+Get the new CSRF_TOKEN

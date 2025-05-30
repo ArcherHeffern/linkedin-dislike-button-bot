@@ -145,5 +145,5 @@ class Data(BaseModel):
     messengerMessagesBySyncToken: MessengerMessagesBySyncToken
 
 
-class MailChain(BaseModel):
+class LinkedinMailChain(BaseModel):
     data: Data

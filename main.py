@@ -1,14 +1,12 @@
-import re
 from typing import Optional
 
 from pydantic import ValidationError
-from common import ANSIColor 
-from models.linkedin_all_mail import MessageConversations, Messages
+from models.linkedin_all_mail import Element, LinkedinMessageConversations, Messages
 from linkedin_api.clients.restli.client import RestliClient
 from dotenv import dotenv_values
 
 from linkedin_api.common.constants import WWWParams
-from models.linkedin_mail_chain import MailChain
+from models.linkedin_mail_chain import LinkedinMailChain
 from models.mine import Mail, MailThread
 
 DEBUG = True
@@ -36,8 +34,10 @@ class LinkedinAPI:
     )
     # print(response.entity)
 
+  def get_single_messaging_thread(self, element: Element) -> Optional[LinkedinMailChain]:
+    return self.__get_single_messaging_thread(element.entityUrn)
 
-  def get_single_messaging_thread(self, msg_converation_urn: str) -> Optional[MailChain]:
+  def __get_single_messaging_thread(self, msg_converation_urn: str) -> Optional[LinkedinMailChain]:
     resource_path = "/voyager/api/voyagerMessagingGraphQL/graphql"
     path_keys = {}
     query_params = {
@@ -63,12 +63,13 @@ class LinkedinAPI:
 
     entity = response.entity
     try:
-      return MailChain.model_validate(entity, strict=True)
+      return LinkedinMailChain.model_validate(entity, strict=True)
     except ValidationError as e:
       dprint(f"Validation Error: {str(e)}")
       return 
 
-  def get_mail(self) -> Optional[Mail]:
+  def get_linkedin_messages_conversations(self) -> Optional[LinkedinMessageConversations]:
+    """Mail messages may be incomplete"""
     resource_path = "/voyager/api/voyagerMessagingGraphQL/graphql"
     path_keys = {}
     query_params = { 
@@ -94,17 +95,27 @@ class LinkedinAPI:
 
     entity = response.entity
     try:
-      linkedin_mail = MessageConversations.model_validate(entity, strict=True)
-      threads = []
-      for linkedin_message_conversation in linkedin_mail.data.messengerConversationsBySyncToken.elements:
-        linkedin_mail_chain = self.get_single_messaging_thread(linkedin_message_conversation.entityUrn) 
-        threads.append(MailThread.from__linkedin_mail_chain(linkedin_message_conversation, linkedin_mail_chain))
-      return Mail(threads)
+      return LinkedinMessageConversations.model_validate(entity, strict=True)
     except ValidationError as e:
       dprint(e.title)
       return None
+    
 
-
-LinkedinAPI().get_user_info()
-mail = LinkedinAPI().get_mail()
-print(mail)
+api = LinkedinAPI()
+api.get_user_info()
+maybe_mail = api.get_linkedin_messages_conversations()
+exit(0)
+if not maybe_mail:
+  exit(1)
+mail = maybe_mail
+for conversation in mail.data.messengerConversationsBySyncToken.elements:
+  ...
+  if False:
+    continue
+  maybe_linkedin_mail_chain = api.get_single_messaging_thread(conversation)
+  if not maybe_linkedin_mail_chain:
+    continue
+  linkedin_mail_chain = maybe_linkedin_mail_chain
+    
+  mail_thread = MailThread.from__linkedin_mail_chain(conversation, linkedin_mail_chain)
+  print(mail_thread)

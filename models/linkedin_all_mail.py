@@ -116,5 +116,5 @@ class Data(BaseModel):
   _type: str
   messengerConversationsBySyncToken: MessengerConversationsBySyncToken
   
-class MessageConversations(BaseModel):
+class LinkedinMessageConversations(BaseModel):
   data: Data
