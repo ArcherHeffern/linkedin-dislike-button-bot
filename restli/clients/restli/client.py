@@ -1,17 +1,17 @@
 import requests
 import copy
 from typing import Union, Dict, Any, List, Optional, Type, Tuple, TypeVar
-import linkedin_api.clients.restli.utils.api as apiutils
-import linkedin_api.clients.restli.utils.encoder as encoder
-from linkedin_api.clients.restli.utils.restli import (
+import restli.clients.restli.utils.api as apiutils
+import restli.clients.restli.utils.encoder as encoder
+from restli.clients.restli.utils.restli import (
     encode_query_params_for_get_requests,
 )
-from linkedin_api.clients.restli.utils.query_tunneling import (
+from restli.clients.restli.utils.query_tunneling import (
     maybe_apply_query_tunneling_get_requests,
     maybe_apply_query_tunneling_requests_with_body,
 )
-from linkedin_api.common.constants import RESTLI_METHODS, WWWParams
-from linkedin_api.clients.restli.response_formatter import (
+from restli.common.constants import RESTLI_METHODS, WWWParams
+from restli.clients.restli.response_formatter import (
     BaseResponseFormatter,
     ActionResponseFormatter,
     BatchCreateResponseFormatter,
@@ -25,7 +25,7 @@ from linkedin_api.clients.restli.response_formatter import (
     DeleteResponseFormatter,
     UpdateResponseFormatter,
 )
-from linkedin_api.clients.restli.response import (
+from restli.clients.restli.response import (
     BaseRestliResponse,
     ActionResponse,
     BatchCreateResponse,
@@ -342,7 +342,8 @@ class RestliClient:
         access_token: str,
         path_keys: Optional[Dict[str, Any]] = None,
         query_params: Optional[Dict[str, Any]] = None,
-        version_string: Optional[str] = None
+        version_string: Optional[str] = None,
+        use_www: Optional[WWWParams] = None
     ) -> CreateResponse:
         """
         Makes a Rest.li CREATE request to create a new resource entity.
@@ -382,6 +383,7 @@ class RestliClient:
             request_body=entity,
             version_string=version_string,
             formatter=CreateResponseFormatter,
+            use_www=use_www,
         )
 
     def batch_create(
@@ -864,6 +866,7 @@ class RestliClient:
                 original_request_body=request_body,
                 access_token=access_token,
                 version_string=version_string,
+                use_www=use_www,
             )
         else:
             prepared_request = maybe_apply_query_tunneling_get_requests(

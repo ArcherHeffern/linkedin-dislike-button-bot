@@ -1,121 +1,64 @@
+from time import sleep
+from sys import exit
 from typing import Optional
-
-from pydantic import ValidationError
-from models.linkedin_all_mail import Element, LinkedinMessageConversations, Messages
-from linkedin_api.clients.restli.client import RestliClient
-from dotenv import dotenv_values
-
-from linkedin_api.common.constants import WWWParams
+from models.linkedin_all_mail import Element, LinkedinMessageConversations
 from models.linkedin_mail_chain import LinkedinMailChain
-from models.mine import Mail, MailThread
+from src.environment import ALT_CSRF_TOKEN, ALT_LI_AT, CSRF_TOKEN, LI_AT
+from restli.common.constants import WWWParams
+from src.linkedin_api import LinkedinAPI
+from models.mine import MailThread
 
-DEBUG = True
+# TODO
+# - How to comment on a post
+# - How to get new comments
+# - How to know if theres new comments? 
 
-ENV = dotenv_values()
-ACCESS_TOKEN = ENV["ACCESS_TOKEN"]
-CSRF_TOKEN = ENV["CSRF_TOKEN"]
-LI_AT = ENV["LI_AT"]
-MAILBOX_URN = ENV["MAILBOX_URN"]
-QUERY_ID = ENV["QUERY_ID"]
-
-def dprint(s: str):
-  if DEBUG:
-    print(f"Error: {s}")
-
-class LinkedinAPI:
-  def __init__(self):
-    self.restli_client = RestliClient()
-
-
-  def get_user_info(self):
-    response = self.restli_client.get(
-        resource_path="/userinfo",
-        access_token=ACCESS_TOKEN,
-    )
-    # print(response.entity)
-
-  def get_single_messaging_thread(self, element: Element) -> Optional[LinkedinMailChain]:
-    return self.__get_single_messaging_thread(element.entityUrn)
-
-  def __get_single_messaging_thread(self, msg_converation_urn: str) -> Optional[LinkedinMailChain]:
-    resource_path = "/voyager/api/voyagerMessagingGraphQL/graphql"
-    path_keys = {}
-    query_params = {
-      "queryId": "messengerMessages.455dde239612d966346c1d1c4352f648",
-      "variables": {
-        "conversationUrn": str(msg_converation_urn)
-      }
-    }
-    www_params: WWWParams = {
-      "CSRFToken": CSRF_TOKEN,
-      "li_at": LI_AT,
-    }
-    response = self.restli_client.get(
-      resource_path=resource_path,
-      access_token=ACCESS_TOKEN,
-      path_keys=path_keys,
-      query_params=query_params,
-      use_www=www_params,
-    )
-    if not 200 <= response.status_code < 300:
-      dprint(f"Not good: {response.status_code}")
-      return
-
-    entity = response.entity
-    try:
-      return LinkedinMailChain.model_validate(entity, strict=True)
-    except ValidationError as e:
-      dprint(f"Validation Error: {str(e)}")
-      return 
-
-  def get_linkedin_messages_conversations(self) -> Optional[LinkedinMessageConversations]:
-    """Mail messages may be incomplete"""
-    resource_path = "/voyager/api/voyagerMessagingGraphQL/graphql"
-    path_keys = {}
-    query_params = { 
-      "queryId": QUERY_ID,
-      "variables": {
-      "mailboxUrn": MAILBOX_URN
-    }
-    }
-    www_params: WWWParams = {
-      "CSRFToken": CSRF_TOKEN,
-      "li_at": LI_AT,
-    }
-    response = self.restli_client.get(
-      resource_path=resource_path,
-      access_token=ACCESS_TOKEN,
-      path_keys=path_keys,
-      query_params=query_params,
-      use_www=www_params,
-    )
-    if not 200 <= response.status_code < 300:
-      dprint(f"Not good: {response.status_code}")
-      return
-
-    entity = response.entity
-    try:
-      return LinkedinMessageConversations.model_validate(entity, strict=True)
-    except ValidationError as e:
-      dprint(e.title)
-      return None
-    
 
 api = LinkedinAPI()
-api.get_user_info()
-maybe_mail = api.get_linkedin_messages_conversations()
-exit(0)
-if not maybe_mail:
-  exit(1)
-mail = maybe_mail
-for conversation in mail.data.messengerConversationsBySyncToken.elements:
-  ...
-  if False:
-    continue
-  maybe_linkedin_mail_chain = api.get_single_messaging_thread(conversation)
-  if not maybe_linkedin_mail_chain:
-    continue
-  linkedin_mail_chain = maybe_linkedin_mail_chain
-    
-  mail_thread = MailThread.from__linkedin_mail_chain(conversation, linkedin_mail_chain)
-  print(mail_thread)
+main_account = WWWParams(CSRF_TOKEN, LI_AT)
+alt_account = WWWParams(ALT_CSRF_TOKEN, ALT_LI_AT)
+
+def tick() -> bool:
+  maybe_mail = api.get_linkedin_messages_conversations(main_account)
+  if not maybe_mail:
+    return False
+  for conversation in maybe_mail.data.messengerConversationsBySyncToken.elements:
+    if conversation.unreadCount == 0:
+      continue
+    # Get unread messages and forward stuffs to them
+    maybe_linkedin_mail_chain = api.get_single_messaging_thread(conversation, main_account)
+    if not maybe_linkedin_mail_chain:
+      continue
+    mail_thread = MailThread.from__linkedin_mail_chain(conversation, maybe_linkedin_mail_chain)
+    unread_messages = mail_thread.messages[0:conversation.unreadCount]
+    for unread_message in unread_messages:
+      if len(unread_message.host_urns) == 0:
+        continue
+      unread_forwarded_post = unread_message
+      print(unread_forwarded_post)
+      # Write message on each post
+      # Mark messages as read
+
+
+def get_all_message_threads(account_params: WWWParams) -> Optional[tuple[LinkedinMessageConversations, tuple[Element, LinkedinMailChain]]]:
+  linkedin_api_constants = api.get_linkedin_api_constants()
+  fsd_profile_urn = api.get_fsd_profile_urn(account_params)
+  if fsd_profile_urn is None:
+    return
+  account_messages = api.get_linkedin_messages_conversations(account_params, linkedin_api_constants, fsd_profile_urn)
+  if not account_messages:
+    return
+  account_threads: tuple[Element, LinkedinMailChain] = []
+  for thread in account_messages.data.messengerConversationsBySyncToken.elements:
+    thread_messages = api.get_single_messaging_thread(thread, alt_account)
+    account_threads.append((thread, thread_messages))
+  
+  return account_messages, account_threads
+
+account_messages, account_threads = get_all_message_threads(alt_account)
+for account_thread in account_threads:
+  print(MailThread.from__linkedin_mail_chain(account_thread[0], account_thread[1]))
+# for _ in range(1):
+#   print("sending")
+#   api.share_post(alt_account)
+# tick()

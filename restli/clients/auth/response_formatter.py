@@ -1,11 +1,11 @@
 from requests import Response
-from linkedin_api.clients.auth.response import (
+from restli.clients.auth.response import (
     AccessToken3LResponse,
     AccessToken2LResponse,
     IntrospectTokenResponse,
     RefreshTokenExchangeResponse,
 )
-from linkedin_api.clients.common.response_formatter import (
+from restli.clients.common.response_formatter import (
     BaseResponseFormatter,
     wrap_format_exception,
 )

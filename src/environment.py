@@ -1,0 +1,14 @@
+
+from dotenv import dotenv_values
+
+
+DEBUG = True
+
+ENV = dotenv_values()
+ACCESS_TOKEN = ENV["ACCESS_TOKEN"]
+CSRF_TOKEN = ENV["CSRF_TOKEN"]
+LI_AT = ENV["LI_AT"]
+MAILBOX_URN = ENV["MAILBOX_URN"]
+QUERY_ID = ENV["QUERY_ID"]
+ALT_CSRF_TOKEN = ENV["ALT_CSRF_TOKEN"]
+ALT_LI_AT = ENV["ALT_LI_AT"]

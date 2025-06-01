@@ -1,4 +1,4 @@
-from linkedin_api.clients.common.response import BaseResponse
+from restli.clients.common.response import BaseResponse
 
 
 class BaseAuthResponse(BaseResponse):

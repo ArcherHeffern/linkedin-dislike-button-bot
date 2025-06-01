@@ -1,13 +1,20 @@
 from enum import Enum
-from typing import TypedDict
+from dataclasses import dataclass
 
 OAUTH_BASE_URL = "https://www.linkedin.com/oauth/v2"
 NON_VERSIONED_BASE_URL = "https://api.linkedin.com/v2"
 VERSIONED_BASE_URL = "https://api.linkedin.com/rest"
 WWW_BASE_URL = "https://www.linkedin.com"
 
+@dataclass
+class LinkedinAPIConstant:
+    kind: str
+    id: str
+    typeName: str
+    name: str
 
-class WWWParams(TypedDict):
+@dataclass
+class WWWParams:
     CSRFToken: str
     li_at: str
     

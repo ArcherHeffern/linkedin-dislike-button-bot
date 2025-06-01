@@ -1,5 +1,5 @@
 import requests
-from linkedin_api.common.constants import (
+from restli.common.constants import (
     RESTLI_METHODS,
     CONTENT_TYPE,
     HTTP_METHODS,
@@ -7,7 +7,7 @@ from linkedin_api.common.constants import (
     HEADERS,
     WWWParams
 )
-import linkedin_api.clients.restli.utils.api as apiutils
+import restli.clients.restli.utils.api as apiutils
 import random
 import string
 import json
@@ -57,10 +57,10 @@ def maybe_apply_query_tunneling_get_requests(
         cookies = {}
         if use_www:
             del headers['Authorization']
-            headers["Csrf-Token"] = use_www["CSRFToken"]
-            cookies["JSESSIONID"] = use_www["CSRFToken"]
+            headers["Csrf-Token"] = use_www.CSRFToken
+            cookies["JSESSIONID"] = use_www.CSRFToken
             headers["Accept"] = "application/graphql"
-            cookies["li_at"] = use_www["li_at"]
+            cookies["li_at"] = use_www.li_at
 
         request = requests.Request(
             method=RESTLI_METHOD_TO_HTTP_METHOD_MAP[
@@ -81,6 +81,7 @@ def maybe_apply_query_tunneling_requests_with_body(
     original_request_body,
     access_token,
     version_string,
+    use_www: Optional[WWWParams] = None,
 ):
     original_http_method = RESTLI_METHOD_TO_HTTP_METHOD_MAP[
         original_restli_method.value.upper()
@@ -105,33 +106,45 @@ def maybe_apply_query_tunneling_requests_with_body(
             f"{json.dumps(original_request_body)}\r\n"
             f"--{boundary}--"
         )
-
+        headers = apiutils.get_restli_request_headers(
+                        content_type=CONTENT_TYPE.MULTIPART_MIXED_WITH_BOUNDARY.value(boundary),
+                        http_method_override=original_http_method,
+                        restli_method=original_restli_method,
+                        access_token=access_token,
+                        version_string=version_string,
+        )
         request = requests.Request(
             method=HTTP_METHODS.POST.value,
             url=url,
             data=multipart_request_body,
-            headers=apiutils.get_restli_request_headers(
-                content_type=CONTENT_TYPE.MULTIPART_MIXED_WITH_BOUNDARY.value(boundary),
-                http_method_override=original_http_method,
-                restli_method=original_restli_method,
-                access_token=access_token,
-                version_string=version_string,
-            ),
+            headers=headers,
         )
     else:
         final_url = (
             f"{url}?{encoded_query_param_string}" if encoded_query_param_string else url
         )
 
+        headers = apiutils.get_restli_request_headers(
+                restli_method=original_restli_method,
+                access_token=access_token,
+                version_string=version_string,
+        )
+        cookies = {}
+        if use_www:
+            del headers['Authorization']
+            del headers['X-RestLi-Method']
+            headers["Csrf-Token"] = use_www.CSRFToken
+            cookies["JSESSIONID"] = use_www.CSRFToken
+            headers["Accept"] = "application/json"
+            headers["Content-Type"] = "text/plain"
+            cookies["li_at"] = use_www.li_at
+
         request = requests.Request(
             method=original_http_method,
             url=final_url,
             json=original_request_body,
-            headers=apiutils.get_restli_request_headers(
-                restli_method=original_restli_method,
-                access_token=access_token,
-                version_string=version_string,
-            ),
+            headers=headers,
+            cookies=cookies,
         )
     return request.prepare()
 

@@ -1,7 +1,7 @@
 from typing import Dict, Optional, Any, Union, List
 from requests import Response
-from linkedin_api.clients.common.response import BaseResponse
-from linkedin_api.clients.restli.types import RestliEntity, EncodedEntityId
+from restli.clients.common.response import BaseResponse
+from restli.clients.restli.types import RestliEntity, EncodedEntityId
 
 
 class Paging:

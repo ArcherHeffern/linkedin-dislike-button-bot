@@ -1,5 +1,5 @@
-from linkedin_api.common.errors import InvalidSerializedRestliError
-from linkedin_api.common.constants import (
+from restli.common.errors import InvalidSerializedRestliError
+from restli.common.constants import (
     LIST_PREFIX,
     LIST_SUFFIX,
     LIST_ITEM_SEP,

@@ -1,4 +1,4 @@
-from linkedin_api.common.constants import OAUTH_BASE_URL
+from restli.common.constants import OAUTH_BASE_URL
 from urllib.parse import urlencode, quote
 from typing import Optional
 

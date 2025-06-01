@@ -1,7 +1,7 @@
-import linkedin_api.common.constants as constants
-from linkedin_api.clients.restli.utils.encoder import encode
+import restli.common.constants as constants
+from restli.clients.restli.utils.encoder import encode
 from typing import Dict, Any, Optional
-from linkedin_api.common.errors import InvalidArgumentError
+from restli.common.errors import InvalidArgumentError
 import re
 
 import sys

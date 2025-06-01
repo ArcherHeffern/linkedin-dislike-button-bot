@@ -1,10 +1,10 @@
 from typing import Dict
 
-from linkedin_api.clients.common.response_formatter import (
+from restli.clients.common.response_formatter import (
     BaseResponseFormatter,
     wrap_format_exception,
 )
-from linkedin_api.clients.restli.response import (
+from restli.clients.restli.response import (
     GetResponse,
     BatchGetResponse,
     CollectionResponse,
@@ -22,7 +22,7 @@ from linkedin_api.clients.restli.response import (
     BatchDeleteResult,
     ActionResponse,
 )
-from linkedin_api.clients.restli.utils.restli import get_created_entity_id
+from restli.clients.restli.utils.restli import get_created_entity_id
 from requests import Response
 
 

@@ -1,21 +1,21 @@
 import requests
-from linkedin_api.clients.auth.response_formatter import (
+from restli.clients.auth.response_formatter import (
     AccessToken2LResponseFormatter,
     AccessToken3LResponseFormatter,
     IntrospectTokenResponseFormatter,
     RefreshTokenExchangeResponseFormatter,
 )
-import linkedin_api.common.constants as constants
-from linkedin_api.common.errors import MissingArgumentError
-import linkedin_api.clients.auth.utils.oauth as oauth
-from linkedin_api.clients.auth.response import (
+import restli.common.constants as constants
+from restli.common.errors import MissingArgumentError
+import restli.clients.auth.utils.oauth as oauth
+from restli.clients.auth.response import (
     AccessToken2LResponse,
     AccessToken3LResponse,
     IntrospectTokenResponse,
     RefreshTokenExchangeResponse,
 )
 from typing import Optional, List
-from linkedin_api.common.constants import HTTP_METHODS
+from restli.common.constants import HTTP_METHODS
 
 
 class AuthClient:

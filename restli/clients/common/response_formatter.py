@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Generic, TypeVar
 from requests import Response
-from linkedin_api.common.errors import ResponseFormattingError
-from linkedin_api.clients.common.response import BaseResponse
+from restli.common.errors import ResponseFormattingError
+from restli.clients.common.response import BaseResponse
 
 
 def wrap_format_exception(fn):

@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Self
 from models.linkedin_all_mail import Element
 from models.linkedin_mail_chain import LinkedinMailChain
 from typing import NewType
@@ -9,6 +8,7 @@ class Mail:
     threads: list['MailThread']
 
 HostUrn = NewType('HostUrn', str) 
+FsdProfileUrn = NewType('FsdProfileUrn', str) 
 
 @dataclass
 class Message:
@@ -21,7 +21,7 @@ class MailThread:
     messages: list[Message]
 
     @staticmethod
-    def from__linkedin_mail_chain(linkedin_message_conversation: Element, linkedin_mail_chain: LinkedinMailChain) -> Self:
+    def from__linkedin_mail_chain(linkedin_message_conversation: Element, linkedin_mail_chain: LinkedinMailChain) -> 'MailThread':
         pt = linkedin_message_conversation.creator.participantType
         name = None
         if pt.member:

@@ -1,6 +1,6 @@
-from linkedin_api.clients.restli.utils.encoder import param_encode
-from linkedin_api.clients.restli.utils.decoder import reduced_decode
-from linkedin_api.common.constants import HEADERS
+from restli.clients.restli.utils.encoder import param_encode
+from restli.clients.restli.utils.decoder import reduced_decode
+from restli.common.constants import HEADERS
 from typing import Dict, Any, Optional
 import copy
 from requests import Response
