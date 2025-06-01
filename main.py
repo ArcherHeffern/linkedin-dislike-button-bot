@@ -55,9 +55,13 @@ def get_all_message_threads(account_params: WWWParams) -> Optional[tuple[Linkedi
   
   return account_messages, account_threads
 
-account_messages, account_threads = get_all_message_threads(alt_account)
-for account_thread in account_threads:
-  print(MailThread.from__linkedin_mail_chain(account_thread[0], account_thread[1]))
+# account_messages, account_threads = get_all_message_threads(alt_account)
+# for account_thread in account_threads:
+#   print(MailThread.from__linkedin_mail_chain(account_thread[0], account_thread[1]))
+
+user_info = api.get_user_info()
+print(user_info)
+
 # for _ in range(1):
 #   print("sending")
 #   api.share_post(alt_account)

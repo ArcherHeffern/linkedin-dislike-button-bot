@@ -5,6 +5,7 @@ import requests
 from pydantic import ValidationError
 from models.linkedin_all_mail import Element, LinkedinMessageConversations, Message
 from models.linkedin_mail_chain import LinkedinMailChain
+from models.linkedin_user_info import LinkedinUserInfo
 from models.mine import FsdProfileUrn
 from restli.clients.restli.client import RestliClient
 from restli.common.constants import LinkedinAPIConstant, WWWParams
@@ -26,7 +27,12 @@ class LinkedinAPI:
     if not 200 <= response.status_code < 300:
       dprint(f"Not good: {response.status_code} while getting user info")
       return
-    return response.entity
+    entity = response.entity
+    try:
+      return LinkedinUserInfo.model_validate(entity, strict=True)
+    except ValidationError as e:
+      dprint(f"Validation Error: {str(e)}")
+      return 
 
   def get_linkedin_api_constants(self) -> Optional[list[LinkedinAPIConstant]]:
     """
