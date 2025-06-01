@@ -8,7 +8,7 @@ from models.linkedin_mail_chain import LinkedinMailChain
 from models.mine import FsdProfileUrn
 from restli.clients.restli.client import RestliClient
 from restli.common.constants import LinkedinAPIConstant, WWWParams
-from src.environment import ACCESS_TOKEN, ALT_CSRF_TOKEN, ALT_LI_AT, CSRF_TOKEN, LI_AT, MAILBOX_URN, QUERY_ID
+from src.environment import ACCESS_TOKEN
 from src.util import dprint
 
 
@@ -17,6 +17,8 @@ class LinkedinAPI:
     self.restli_client = RestliClient()
 
   def get_user_info(self) -> Optional[Any]:
+    if not ACCESS_TOKEN:
+      dprint("ACCESS_TOKEN must exist for this API call. See README.md for instructions")
     response = self.restli_client.get(
         resource_path="/userinfo",
         access_token=ACCESS_TOKEN,

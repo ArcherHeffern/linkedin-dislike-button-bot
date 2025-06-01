@@ -22,11 +22,11 @@ pip install -r requirements.txt
 Remember to rename the file to `.env`!
 
 Acquiring variables: 
-* ACCESS_TOKEN: 
 * CSRF_TOKEN and LI_AT: Check your LinkedIn cookies for `JSESSIONID`, and `li_at`
-* QUERY_ID and MAILBOX_URN: Check query string parameters for request made to `/voyager/api/voyagerMessagingGraphQL/graphql`
-    * QUERY_ID has matches ERE pattern: `messengerConversations\..+`
-    * MAILBOX_URN matches ERE pattern: `urn:li:fsd_profile:.+`
+* ACCESS_TOKEN: (Optional. Used only for calling get_user_info)
+1. Create or use an existing developer application from the LinkedIn Developer Portal
+2. Request access to the Sign In With LinkedIn API product. This is a self-serve product that will be provisioned immediately to your application.
+3. Generate a 3-legged access token using the Developer Portal token generator tool, selecting the r_liteprofile scope.
 
 4. Run the program
 ```bash
