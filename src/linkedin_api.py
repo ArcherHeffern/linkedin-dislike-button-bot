@@ -1,6 +1,5 @@
 import re
-import string
-from typing import Any, Optional
+from typing import Optional
 import requests
 from pydantic import ValidationError
 from models.linkedin_all_mail import Element, LinkedinMessageConversations, Message
@@ -17,9 +16,10 @@ class LinkedinAPI:
   def __init__(self):
     self.restli_client = RestliClient()
 
-  def get_user_info(self) -> Optional[Any]:
+  def get_user_info(self) -> Optional[LinkedinUserInfo]:
     if not ACCESS_TOKEN:
       dprint("ACCESS_TOKEN must exist for this API call. See README.md for instructions")
+      return
     response = self.restli_client.get(
         resource_path="/userinfo",
         access_token=ACCESS_TOKEN,
@@ -110,7 +110,7 @@ class LinkedinAPI:
     #   "credentials": "omit"
     # });
   
-  def get_fsd_profile_urn(self, www_params: WWWParams):
+  def get_fsd_profile_urn(self, www_params: WWWParams) -> Optional[FsdProfileUrn]:
     """
     Grep out first occurance of urn:li:fsd_profile:\\w* from https://www.linkedin.com/feed/
 
@@ -129,10 +129,12 @@ class LinkedinAPI:
       headers=headers,
     )
     if not feed_response.ok:
-      return None
+      return 
     
     maybe_fsd_profile_urn_pattern = re.search("urn:li:fsd_profile:[^ &]*", feed_response.text) # Incomplete regex. Replace [^ &] with positive character group stating which characters CAN be used in an URN
-    return maybe_fsd_profile_urn_pattern.group()
+    if maybe_fsd_profile_urn_pattern is None:
+      return 
+    return FsdProfileUrn(maybe_fsd_profile_urn_pattern.group())
     
   def mark_message_as_read(self, messaging_thread_urn: str) -> bool:
     ...

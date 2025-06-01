@@ -1,12 +1,10 @@
-from time import sleep
-from sys import exit
 from typing import Optional
 from models.linkedin_all_mail import Element, LinkedinMessageConversations
 from models.linkedin_mail_chain import LinkedinMailChain
 from src.environment import ALT_CSRF_TOKEN, ALT_LI_AT, CSRF_TOKEN, LI_AT
-from restli.common.constants import WWWParams
+from restli.common.constants import WWWParams, LinkedinAPIConstant
 from src.linkedin_api import LinkedinAPI
-from models.mine import MailThread
+from models.mine import FsdProfileUrn, MailThread
 
 # TODO
 # - How to comment on a post
@@ -18,8 +16,8 @@ api = LinkedinAPI()
 main_account = WWWParams(CSRF_TOKEN, LI_AT)
 alt_account = WWWParams(ALT_CSRF_TOKEN, ALT_LI_AT)
 
-def tick() -> bool:
-  maybe_mail = api.get_linkedin_messages_conversations(main_account)
+def tick(account: WWWParams, linkedin_api_constants: list[LinkedinAPIConstant], fsd_profile_urn: FsdProfileUrn) -> bool|None:
+  maybe_mail = api.get_linkedin_messages_conversations(account, linkedin_api_constants, fsd_profile_urn)
   if not maybe_mail:
     return False
   for conversation in maybe_mail.data.messengerConversationsBySyncToken.elements:
@@ -40,17 +38,21 @@ def tick() -> bool:
       # Mark messages as read
 
 
-def get_all_message_threads(account_params: WWWParams) -> Optional[tuple[LinkedinMessageConversations, tuple[Element, LinkedinMailChain]]]:
+def get_all_message_threads(account_params: WWWParams) -> Optional[tuple[LinkedinMessageConversations, list[tuple[Element, LinkedinMailChain]]]]:
   linkedin_api_constants = api.get_linkedin_api_constants()
+  if linkedin_api_constants is None:
+    return
   fsd_profile_urn = api.get_fsd_profile_urn(account_params)
   if fsd_profile_urn is None:
     return
   account_messages = api.get_linkedin_messages_conversations(account_params, linkedin_api_constants, fsd_profile_urn)
   if not account_messages:
     return
-  account_threads: tuple[Element, LinkedinMailChain] = []
+  account_threads: list[tuple[Element, LinkedinMailChain]] = []
   for thread in account_messages.data.messengerConversationsBySyncToken.elements:
     thread_messages = api.get_single_messaging_thread(thread, alt_account)
+    if thread_messages is None:
+      continue
     account_threads.append((thread, thread_messages))
   
   return account_messages, account_threads
